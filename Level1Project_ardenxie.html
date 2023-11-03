@@ -1,0 +1,134 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Calorie Counter</title>
+	</head>
+
+	<body>
+		<h1>Calorie Counter</h1>
+
+		<hr>
+		<h2>Appetizer</h2>
+		<h3 id="appetizerProteinsDisplay">Proteins</h3>
+		<button id="appetizerProteinsDecrement">-1 Proteins</button>
+		<button id="appetizerProteinsIncrement">+1 Proteins</button>
+		<h3 id="appetizerCarbsDisplay">Carbohydrates</h3>
+		<button id="appetizerCarbsDecrement">-1 Carbohydrates</button>
+		<button id="appetizerCarbsIncrement">+1 Carbohydrates</button>
+		<h3 id="appetizerFatsDisplay">Fats</h3>
+		<button id="appetizerFatsDecrement">-1 Fats</button>
+		<button id="appetizerFatsIncrement">+1 Fats</button>
+		<h3 id="appetizerCaloriesDisplay">Calories</h3>
+
+		<hr>
+		<h2>Entree</h2>
+		<h3 id="entreeProteinsDisplay">Proteins</h3>
+		<button id="entreeProteinsDecrement">-1 Proteins</button>
+		<button id="entreeProteinsIncrement">+1 Proteins</button>
+		<h3 id="entreeCarbsDisplay">Carbohydrates</h3>
+		<button id="entreeCarbsDecrement">-1 Carbohydrates</button>
+		<button id="entreeCarbsIncrement">+1 Carbohydrates</button>
+		<h3 id="entreeFatsDisplay">Fats</h3>
+		<button id="entreeFatsDecrement">-1 Fats</button>
+		<button id="entreeFatsIncrement">+1 Fats</button>
+		<h3 id="entreeCaloriesDisplay">Calories</h3>
+
+		<hr>
+		<h2>Dessert</h2>
+		<h3 id="dessertProteinsDisplay">Proteins</h3>
+		<button id="dessertProteinsDecrement">-1 Proteins</button>
+		<button id="dessertProteinsIncrement">+1 Proteins</button>
+		<h3 id="dessertCarbsDisplay">Carbohydrates</h3>
+		<button id="dessertCarbsDecrement">-1 Carbohydrates</button>
+		<button id="dessertCarbsIncrement">+1 Carbohydrates</button>
+		<h3 id="dessertFatsDisplay">Fats</h3>
+		<button id="dessertFatsDecrement">-1 Fats</button>
+		<button id="dessertFatsIncrement">+1 Fats</button>
+		<h3 id="dessertCaloriesDisplay">Calories</h3>
+
+		<hr>
+		<h2 id="totalCaloriesDisplay">Total Calories</h2>
+
+		<script>
+			function bindCounter(counterName) {
+				let counterDisplay = document.getElementById(counterName + "Display");
+				let counterIncBtn = document.getElementById(counterName + "Increment");
+				let counterDecBtn = document.getElementById(counterName + "Decrement");
+				let counter = {
+					value: 0,
+					onupdate: null,
+				};
+
+				let counterNameLocalized = counterDisplay.innerHTML;
+				let updateDisplay = function() {
+					counterDisplay.innerHTML = counterNameLocalized + ": " + counter.value;
+				}
+
+				counterIncBtn.onclick = function() {
+					counter.value++;
+					if (counter.onupdate != null)
+						counter.onupdate();
+					updateDisplay();
+				}
+
+				counterDecBtn.onclick = function() {
+					counter.value--;
+					if (counter.value < 0)
+						counter.value = 0;
+					if (counter.onupdate != null)
+						counter.onupdate();
+					updateDisplay();
+				}
+
+				updateDisplay();
+				return counter;
+			}
+
+			function bindSection(sectionName) {
+				let proteins = bindCounter(sectionName + "Proteins");
+				let carbs = bindCounter(sectionName + "Carbs");
+				let fats = bindCounter(sectionName + "Fats");
+
+				let caloriesDisplay = document.getElementById(sectionName + "CaloriesDisplay");
+				let calories = {
+					value: 0,
+					onupdate: null
+				};
+
+				let updateDisplay = function() {
+					calories.value = fats.value * 9 + carbs.value * 4 + proteins.value * 4;
+					if (calories.onupdate != null)
+						calories.onupdate();
+					caloriesDisplay.innerHTML = "Calories: " + calories.value;
+				}
+
+				proteins.onupdate = updateDisplay;
+				carbs.onupdate = updateDisplay;
+				fats.onupdate = updateDisplay;
+
+				updateDisplay();
+				return {
+					proteins: proteins,
+					carbs: carbs,
+					fats: fats,
+					calories: calories,
+				};
+			}
+
+			let appetizer = bindSection("appetizer");
+			let entree = bindSection("entree");
+			let dessert = bindSection("dessert");
+
+			let caloriesDisplay = document.getElementById("totalCaloriesDisplay");
+			let updateDisplay = function() {
+				caloriesDisplay.innerHTML = "Total Calories: " + (appetizer.calories.value + entree.calories.value + dessert.calories.value);
+			}
+
+			appetizer.calories.onupdate = updateDisplay;
+			entree.calories.onupdate = updateDisplay;
+			dessert.calories.onupdate = updateDisplay;
+
+			updateDisplay();
+		</script>
+	</body>
+</html>

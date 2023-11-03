@@ -1,0 +1,178 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Calorie Counter (MODIFIED)</title>
+		<style>
+			body {
+				text-align: center;
+			}
+
+			.nomargin {
+				margin: 0;
+			}
+
+			.nomargintop {
+				margin-top: 0;
+			}
+
+			.inline {
+				display: inline;
+				margin: 0 5px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<h1>Calorie Counter</h1>
+
+		<hr>
+		<div id="sectionAppetizer"></div>
+		<hr>
+		<div id="sectionEntree"></div>
+		<hr>
+		<div id="sectionDessert"></div>
+
+		<hr>
+		<h2 id="totalCaloriesDisplay">Total Calories</h2>
+
+		<button id="resetButton">Reset Counter</button>
+
+		<script>
+			let signFormatter = Intl.NumberFormat("en-US", { signDisplay: "always" });
+			let numberSorter = (a, b) => (a - b);
+
+			class SharedData extends EventTarget {
+				constructor(defaultValue) {
+					super();
+					this._value = defaultValue;
+				}
+
+				get value() {
+					return this._value;
+				}
+
+				set value(newValue) {
+					this._value = newValue;
+					this.dispatchEvent(new CustomEvent("change"));
+				}
+			}
+
+			class CounterComponent extends EventTarget {
+				constructor(parent, name, increments) {
+					super();
+					this.counter = new SharedData(0);
+
+					let container = document.createElement("div");
+
+					let title = document.createElement("h3");
+					title.className = "nomargin";
+					title.innerText = name;
+
+					let display = document.createElement("h3");
+					display.className = "inline";
+
+					let updateDisplay = () => {
+						display.innerText = this.value;
+					};
+
+					let createIncrementButton = (increment) => {
+						let button = document.createElement("button");
+						button.innerText = signFormatter.format(increment);
+						button.onclick = () => {
+							this.value = Math.max(0, this.value + increment);
+						}
+						container.appendChild(button);
+					};
+
+					container.appendChild(title);
+					increments.toSorted(numberSorter).toReversed().forEach((increment) => createIncrementButton(-increment));
+					container.appendChild(display);
+					increments.toSorted(numberSorter).forEach((increment) => createIncrementButton(increment));
+
+					this.counter.addEventListener("change", updateDisplay);
+					this.counter.addEventListener("change", () => {
+						this.dispatchEvent(new CustomEvent("change"));
+					});
+
+					parent.appendChild(container);
+					parent.appendChild(document.createElement("br"));
+					updateDisplay();
+				}
+
+				get value() {
+					return this.counter.value;
+				}
+
+				set value(newValue) {
+					this.counter.value = newValue;
+				}
+			}
+
+			class MealComponent extends EventTarget {
+				constructor(parent, name) {
+					super();
+
+					let title = document.createElement("h2");
+					title.innerText = name;
+					parent.appendChild(title);
+
+					let increments = [1, 5, 10, 25];
+					this.proteins = new CounterComponent(parent, "Proteins", increments);
+					this.carbs = new CounterComponent(parent, "Carbohydrates", increments);
+					this.fats = new CounterComponent(parent, "Fats", increments);
+					this.calories = new SharedData(0);
+
+					let caloriesDisplay = document.createElement("h3");
+					caloriesDisplay.className = "nomargintop";
+					parent.appendChild(caloriesDisplay);
+
+					let calculateCalories = () => {
+						this.calories.value = 9 * this.fats.value + 4 * this.carbs.value + 4 * this.proteins.value;
+					};
+
+					this.proteins.addEventListener("change", calculateCalories);
+					this.carbs.addEventListener("change", calculateCalories);
+					this.fats.addEventListener("change", calculateCalories);
+
+					let updateDisplay = () => {
+						caloriesDisplay.innerText = `Calories: ${this.calories.value}`;
+					};
+
+					updateDisplay();
+					this.calories.addEventListener("change", updateDisplay);
+					this.calories.addEventListener("change", () => {
+						this.dispatchEvent(new CustomEvent("change"));
+					});
+				}
+
+				reset() {
+					this.proteins.value = 0;
+					this.carbs.value = 0;
+					this.fats.value = 0;
+				}
+			}
+
+			let appetizer = new MealComponent(document.getElementById("sectionAppetizer"), "Appetizer");
+			let entree = new MealComponent(document.getElementById("sectionEntree"), "Entree");
+			let dessert = new MealComponent(document.getElementById("sectionDessert"), "Dessert");
+
+			let caloriesDisplay = document.getElementById("totalCaloriesDisplay");
+			let updateDisplay = () => {
+				let totalCalories = appetizer.calories.value + entree.calories.value + dessert.calories.value;
+				caloriesDisplay.innerText = `Total Calories: ${totalCalories}`;
+			};
+
+			updateDisplay();
+			appetizer.addEventListener("change", updateDisplay);
+			entree.addEventListener("change", updateDisplay);
+			dessert.addEventListener("change", updateDisplay);
+
+			let resetButton = document.getElementById("resetButton");
+			resetButton.onclick = () => {
+				appetizer.reset();
+				entree.reset();
+				dessert.reset();
+			};
+		</script>
+	</body>
+</html>
